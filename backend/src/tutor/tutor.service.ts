@@ -12,6 +12,7 @@ export interface TutorContext {
   currentQuestion: {
     enunciado: string;
     difficulty: number;
+    options: { A: string; B: string; C: string; D: string };
     correctAnswer: string;
     explanation: string;
   };
@@ -29,7 +30,7 @@ const FALLBACK_RESPONSE: TutorResponse = {
   confidence: 0,
 };
 
-function renderContextMessage(context: TutorContext): string {
+export function renderContextMessage(context: TutorContext): string {
   return [
     'Contexto estructurado del intento del estudiante (JSON):',
     JSON.stringify(context, null, 2),
@@ -42,7 +43,7 @@ function renderContextMessage(context: TutorContext): string {
 export class TutorService {
   private readonly logger = new Logger(TutorService.name);
   private readonly client = new Anthropic();
-  private readonly model = process.env.TUTOR_MODEL ?? 'claude-sonnet-5-5';
+  private readonly model = process.env.TUTOR_MODEL ?? 'claude-haiku-5-5';
 
   async generateInitialFeedback(context: TutorContext): Promise<TutorResponse> {
     return this.callTutor([{ role: 'user', content: renderContextMessage(context) }]);

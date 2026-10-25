@@ -7,6 +7,12 @@ export interface TutorContext {
     currentQuestion: {
         enunciado: string;
         difficulty: number;
+        options: {
+            A: string;
+            B: string;
+            C: string;
+            D: string;
+        };
         correctAnswer: string;
         explanation: string;
     };
@@ -15,6 +21,7 @@ export interface TutorContext {
     tutorMode: 'initial_feedback' | 'followup';
     ragSnippets: string[];
 }
+export declare function renderContextMessage(context: TutorContext): string;
 export declare class TutorService {
     private readonly logger;
     private readonly client;

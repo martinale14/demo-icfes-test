@@ -34,6 +34,12 @@ export class TutorContextBuilderService {
       currentQuestion: {
         enunciado: question.enunciado,
         difficulty: question.difficulty,
+        options: {
+          A: question.optionA,
+          B: question.optionB,
+          C: question.optionC,
+          D: question.optionD,
+        },
         correctAnswer: question.correctAnswer,
         explanation: question.explanation,
       },

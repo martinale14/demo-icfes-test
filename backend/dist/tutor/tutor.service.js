@@ -16,7 +16,7 @@ const FALLBACK_RESPONSE = {
     recommendedAction: 'advance',
     confidence: 0,
 };
-function renderContextMessage(context) {
+export function renderContextMessage(context) {
     return [
         'Contexto estructurado del intento del estudiante (JSON):',
         JSON.stringify(context, null, 2),
@@ -27,7 +27,7 @@ function renderContextMessage(context) {
 let TutorService = TutorService_1 = class TutorService {
     logger = new Logger(TutorService_1.name);
     client = new Anthropic();
-    model = process.env.TUTOR_MODEL ?? 'claude-sonnet-5-5';
+    model = process.env.TUTOR_MODEL ?? 'claude-haiku-5-5';
     async generateInitialFeedback(context) {
         return this.callTutor([{ role: 'user', content: renderContextMessage(context) }]);
     }
