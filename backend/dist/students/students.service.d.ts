@@ -1,0 +1,7 @@
+import { PrismaService } from '../prisma/prisma.service.js';
+export declare const DEMO_STUDENT_ID = "demo-student";
+export declare class StudentsService {
+    private readonly prisma;
+    constructor(prisma: PrismaService);
+    getById(studentId: string): Promise<any>;
+}
