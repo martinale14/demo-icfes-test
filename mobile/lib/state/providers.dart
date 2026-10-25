@@ -73,6 +73,13 @@ class QuizNotifier extends Notifier<QuizState> {
     state = next == null ? QuizState(completed: true) : QuizState(question: next);
   }
 
+  /// Drops all local quiz state (question, hints, completion) and reloads
+  /// question 1 — used after the backend progress has been wiped.
+  Future<void> resetAndReload() async {
+    state = QuizState();
+    await loadNext();
+  }
+
   /// Reveals the next RAG snippet for the current question's skill as a
   /// student-facing hint (still counts toward the mastery hint penalty).
   Future<void> requestHint() async {
@@ -120,3 +127,14 @@ final progressProvider = FutureProvider<List<SkillProgress>>((ref) async {
 final careerAffinityProvider = FutureProvider<List<CareerAffinity>>((ref) async {
   return ref.read(apiClientProvider).getCareerAffinity(ApiConfig.demoStudentId);
 });
+
+/// Resets the backend demo student's progress, then resets all client-side
+/// state so the app behaves like a fresh install. Call this, then pop back
+/// to the root route — it does not navigate itself.
+Future<void> resetDemo(WidgetRef ref) async {
+  await ref.read(apiClientProvider).resetDemo(ApiConfig.demoStudentId);
+  ref.read(lastAttemptProvider.notifier).state = null;
+  ref.invalidate(progressProvider);
+  ref.invalidate(careerAffinityProvider);
+  await ref.read(quizProvider.notifier).resetAndReload();
+}

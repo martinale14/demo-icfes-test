@@ -3,6 +3,12 @@ export declare class ProgressService {
     private readonly prisma;
     constructor(prisma: PrismaService);
     getProgress(studentId: string): Promise<{
-        skills: any;
+        skills: {
+            skillCode: string;
+            skillName: string;
+            masteryProbability: number;
+            consecutiveSuccesses: number;
+            attempts: number;
+        }[];
     }>;
 }

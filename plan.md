@@ -318,6 +318,16 @@ Al construir la imagen se encontró y corrigió un desfase real entre `package.j
 
 Verificado en vivo: `docker build` exitoso, contenedor corriendo con solo `ANTHROPIC_API_KEY` seteada aplica migraciones + siembra 5 skills/15 preguntas + arranca Nest con todas las rutas mapeadas, y una llamada real `POST /attempts` a través del contenedor devolvió feedback genuino de Claude.
 
+### Botón "Reiniciar demo" (última pantalla)
+
+Pedido explícito del usuario: poder reiniciar toda la demo —incluido el backend— desde un solo botón, sin que alguien tenga que tocar la base de datos o reiniciar procesos a mano entre presentaciones.
+
+- **Backend**: `StudentsService.resetProgress(studentId)` (nuevo) hace `prisma.attempt.deleteMany({ where: { studentId } })` + `prisma.studentSkillState.updateMany(...)` devolviendo cada fila al prior inicial (`masteryProbability: 0.3`, `consecutiveSuccesses: 0`, `hintDependency: 0`, `lastPracticedAt: null`). No borra ni reseembra `Question`/`Skill` — es un reinicio del *progreso del estudiante*, no de la base de datos. Expuesto como `POST /students/:id/reset` en `StudentsController`.
+- **Flutter**: `resetDemo(WidgetRef ref)` (en `state/providers.dart`) orquesta todo el reinicio del lado del cliente: llama al endpoint, limpia `lastAttemptProvider`, invalida `progressProvider` y `careerAffinityProvider` (para que se vuelvan a pedir la próxima vez que se visiten esas pantallas), y llama a `QuizNotifier.resetAndReload()` (nuevo) para volver a la pregunta 1.
+- **UI**: botón "Reiniciar demo" al pie de `CareerAffinityScreen` (la última pantalla del flujo), con un diálogo de confirmación antes de ejecutar (es una acción destructiva — borra el progreso real en el servidor). Tras confirmar, hace `Navigator.popUntil((route) => route.isFirst)` para volver a `QuestionScreen`, que para entonces ya tiene la pregunta 1 cargada.
+- Tests unitarios en `students.service.spec.ts` (reinicio correcto + 404 si el estudiante no existe, en vez de borrar datos a ciegas).
+- Verificado en vivo de punta a punta en el emulador: estudiante con las 15 preguntas completadas → pantalla de afinidad vocacional → tap en "Reiniciar demo" → confirmar → la app vuelve sola a "Pregunta 1 de 15" sin reiniciar `flutter run` ni el backend; `/progress` y `/questions/next` confirmados limpios en el servidor en el mismo momento.
+
 ## 3. Cómo correr el demo
 
 Ver [`README.md`](./README.md) para instrucciones completas de arranque (backend + mobile) y el guion de verificación manual.
@@ -395,3 +405,6 @@ cd backend && rm -f prisma/dev.db && npx prisma migrate dev --name init && npx p
 - [x] Nueva pantalla Flutter `CareerAffinityScreen`, enlazada desde `ProgressScreen`.
 - [x] Tests unitarios de `CareersService` (13/13 en la suite completa).
 - [x] Verificado en vivo con un perfil sesgado: el ranking de carreras reacciona correctamente al desempeño real por competencia.
+- [x] Fix: "Pedir pista" ahora revela contenido real (`GET /knowledge-base/hint`) en vez de solo penalizar sin mostrar nada — ver detalle en la sección "Fix: Pedir pista..." más arriba.
+- [x] Dockerfile para el backend (multi-stage, migrate+seed en el arranque del contenedor) — ver sección "Dockerfile" más arriba. De paso se corrigieron dos bugs reales: lockfile desincronizado (`npm ci` fallaba) y el fallback de `PORT` en `main.ts` (era 3000, debía ser 3001).
+- [x] Botón "Reiniciar demo" en `CareerAffinityScreen` (última pantalla del flujo): `POST /students/:id/reset` (nuevo, en `StudentsService`/`StudentsController`) borra todos los `Attempt` del estudiante y resetea cada `StudentSkillState` al prior inicial (0.3, sin tocar `Question`/`Skill`); en Flutter, `resetDemo(ref)` llama al endpoint, limpia `lastAttemptProvider`, invalida `progressProvider`/`careerAffinityProvider`, recarga `quizProvider` con la pregunta 1, y hace `popUntil` a la raíz — un solo tap (con diálogo de confirmación) deja la demo lista para repetirse sin reiniciar el backend ni la app. Verificado en vivo de punta a punta: 15 preguntas completadas → afinidad vocacional calculada → reset → `/progress` y `/questions/next` confirmados limpios en el servidor → app mostrando "Pregunta 1 de 15" de nuevo.

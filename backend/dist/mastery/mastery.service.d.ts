@@ -12,5 +12,13 @@ export declare class MasteryService {
         isCorrect: boolean;
         difficulty: number;
         hintCount: number;
-    }): Promise<any>;
+    }): Promise<{
+        id: string;
+        studentId: string;
+        skillId: string;
+        masteryProbability: number;
+        lastPracticedAt: Date | null;
+        consecutiveSuccesses: number;
+        hintDependency: number;
+    }>;
 }

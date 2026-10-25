@@ -3,36 +3,106 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/career_affinity.dart';
 import '../state/providers.dart';
 
-class CareerAffinityScreen extends ConsumerWidget {
+class CareerAffinityScreen extends ConsumerStatefulWidget {
   const CareerAffinityScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CareerAffinityScreen> createState() => _CareerAffinityScreenState();
+}
+
+class _CareerAffinityScreenState extends ConsumerState<CareerAffinityScreen> {
+  bool _resetting = false;
+
+  Future<void> _confirmAndReset() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reiniciar demo'),
+        content: const Text(
+          'Esto borra todos tus intentos y tu dominio estimado en el servidor, y vuelve a '
+          'empezar desde la pregunta 1. ¿Continuar?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Reiniciar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    setState(() => _resetting = true);
+    try {
+      await resetDemo(ref);
+      if (!mounted) return;
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _resetting = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error reiniciando el demo: $e')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final affinities = ref.watch(careerAffinityProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Afinidad vocacional')),
-      body: affinities.when(
-        data: (careers) => ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: careers.length + 1,
-          itemBuilder: (context, index) {
-            if (index == 0) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Text(
-                  'Según tu desempeño en las 5 áreas evaluadas, estas son las carreras con '
-                  'mayor afinidad. Es un cálculo orientativo, no un resultado oficial.',
-                  style: Theme.of(context).textTheme.bodyMedium,
+      body: Column(
+        children: [
+          Expanded(
+            child: affinities.when(
+              data: (careers) => ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: careers.length + 1,
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Text(
+                        'Según tu desempeño en las 5 áreas evaluadas, estas son las carreras '
+                        'con mayor afinidad. Es un cálculo orientativo, no un resultado oficial.',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    );
+                  }
+                  final career = careers[index - 1];
+                  return _CareerCard(career: career);
+                },
+              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, _) => Center(child: Text('Error cargando afinidad vocacional: $err')),
+            ),
+          ),
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _resetting ? null : _confirmAndReset,
+                  icon: _resetting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.restart_alt),
+                  label: const Text('Reiniciar demo'),
                 ),
-              );
-            }
-            final career = careers[index - 1];
-            return _CareerCard(career: career);
-          },
-        ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('Error cargando afinidad vocacional: $err')),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

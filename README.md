@@ -31,9 +31,11 @@ Variables en `.env`:
 
 Para resetear los datos de la demo a un estado limpio (sin intentos previos):
 
-```bash
-rm -f prisma/dev.db && npx prisma migrate dev --name init && npx prisma db seed
-```
+- **Desde la app**: botón "Reiniciar demo" al final de la pantalla de afinidad vocacional — no requiere tocar la terminal ni reiniciar nada.
+- **Desde la terminal** (reset completo de la base, incluyendo reseeding):
+  ```bash
+  rm -f prisma/dev.db && npx prisma migrate dev --name init && npx prisma db seed
+  ```
 
 ### Tests
 

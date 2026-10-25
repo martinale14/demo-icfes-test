@@ -3,6 +3,12 @@ export declare class ProgressController {
     private readonly progressService;
     constructor(progressService: ProgressService);
     getProgress(studentId: string): Promise<{
-        skills: any;
+        skills: {
+            skillCode: string;
+            skillName: string;
+            masteryProbability: number;
+            consecutiveSuccesses: number;
+            attempts: number;
+        }[];
     }>;
 }

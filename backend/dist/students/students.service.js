@@ -9,6 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { INITIAL_MASTERY } from '../mastery/mastery.service.js';
 export const DEMO_STUDENT_ID = 'demo-student';
 let StudentsService = class StudentsService {
     prisma;
@@ -21,6 +22,20 @@ let StudentsService = class StudentsService {
             throw new NotFoundException(`Student ${studentId} not found`);
         }
         return student;
+    }
+    async resetProgress(studentId) {
+        await this.getById(studentId);
+        await this.prisma.attempt.deleteMany({ where: { studentId } });
+        await this.prisma.studentSkillState.updateMany({
+            where: { studentId },
+            data: {
+                masteryProbability: INITIAL_MASTERY,
+                consecutiveSuccesses: 0,
+                hintDependency: 0,
+                lastPracticedAt: null,
+            },
+        });
+        return { reset: true };
     }
 };
 StudentsService = __decorate([

@@ -89,6 +89,12 @@ class ApiClient {
     return body['hint'] as String?;
   }
 
+  Future<void> resetDemo(String studentId) async {
+    final uri = Uri.parse('${ApiConfig.baseUrl}/students/$studentId/reset');
+    final response = await _client.post(uri);
+    _ensureOk(response);
+  }
+
   Future<List<CareerAffinity>> getCareerAffinity(String studentId) async {
     final uri = Uri.parse(
       '${ApiConfig.baseUrl}/careers/affinity',
