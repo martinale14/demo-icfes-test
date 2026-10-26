@@ -328,6 +328,14 @@ Pedido explícito del usuario: poder reiniciar toda la demo —incluido el backe
 - Tests unitarios en `students.service.spec.ts` (reinicio correcto + 404 si el estudiante no existe, en vez de borrar datos a ciegas).
 - Verificado en vivo de punta a punta en el emulador: estudiante con las 15 preguntas completadas → pantalla de afinidad vocacional → tap en "Reiniciar demo" → confirmar → la app vuelve sola a "Pregunta 1 de 15" sin reiniciar `flutter run` ni el backend; `/progress` y `/questions/next` confirmados limpios en el servidor en el mismo momento.
 
+### El contexto del tutor ahora incluye el texto de las 4 opciones
+
+Pedido explícito del usuario: que el tutor pueda explicar *por qué* una opción específica está mal, no solo decir "la correcta era B". Antes, `TutorContext.currentQuestion` solo tenía `correctAnswer` (la letra) y `explanation` — el LLM nunca veía el texto de las opciones, ni siquiera la que el estudiante eligió.
+
+- `TutorContext.currentQuestion.options: { A, B, C, D }` (nuevo campo, en `tutor.service.ts`) — poblado en `TutorContextBuilderService.build()` desde `question.optionA-D`.
+- Regla 12 agregada al system prompt: cuando el tutor explica por qué una respuesta es incorrecta, debe referirse al contenido específico de la opción elegida (no solo a su letra), y contrastarla con la opción correcta cuando ayude.
+- Verificado en vivo: con la pregunta del descuento del 20%, un estudiante que elige D ("$64.000" — el precio final, no el ahorro) recibe feedback real de Claude que dice explícitamente *"Elegiste D ($64.000)... de hecho, $64.000 es lo que pagaría el comprador, pero el enunciado pregunta cuánto se ahorra"* — diagnosticando la trampa exacta (confundir precio final con valor ahorrado) usando el contenido real de la opción, algo que antes era imposible con solo la letra "D".
+
 ## 3. Cómo correr el demo
 
 Ver [`README.md`](./README.md) para instrucciones completas de arranque (backend + mobile) y el guion de verificación manual.

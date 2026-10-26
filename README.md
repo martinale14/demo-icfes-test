@@ -27,7 +27,7 @@ Variables en `.env`:
 - `DATABASE_URL` — SQLite local (`file:./dev.db`, relativo a `prisma/`).
 - `PORT` — puerto del servidor (default `3001`; se eligió distinto de 3000 para evitar choques con otros servicios locales).
 - `ANTHROPIC_API_KEY` — requerida para el feedback real del tutor. Sin ella, el backend sigue funcionando pero devuelve un feedback de fallback fijo.
-- `TUTOR_MODEL` — modelo de Claude a usar (default `claude-sonnet-5-5`).
+- `TUTOR_MODEL` — modelo de Claude a usar (default `claude-haiku-5-5`).
 
 Para resetear los datos de la demo a un estado limpio (sin intentos previos):
 

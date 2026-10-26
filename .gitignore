@@ -1,0 +1,5 @@
+# OS/editor cruft not already covered by backend/.gitignore or mobile/.gitignore
+.DS_Store
+*.log
+.vscode/
+.idea/
